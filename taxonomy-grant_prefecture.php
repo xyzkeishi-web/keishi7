@@ -1624,7 +1624,7 @@ function applyPrefectureFilters() {
         
         if (data.success) {
             updateGrantsGrid(data.data.html);
-            updateResultsCount(data.data.found_posts, data.data.showing_from, data.data.showing_to);
+            updateResultsCount(data.data.total, data.data.showing_from, data.data.showing_to);
             updatePagination(data.data.pagination);
         } else {
             console.error('Filter error:', data.data.message);
@@ -1780,8 +1780,9 @@ function updateResultsCount(total, from, to) {
     const totalCountEl = document.getElementById('total-count');
     const showingRangeEl = document.getElementById('showing-range');
     
+    const safeTotal = parseInt(total) || 0;
     if (totalCountEl) {
-        totalCountEl.textContent = total.toLocaleString() + '件';
+        totalCountEl.textContent = safeTotal.toLocaleString() + '件';
     }
     
     if (showingRangeEl) {

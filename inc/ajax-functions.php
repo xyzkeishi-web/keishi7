@@ -4376,6 +4376,14 @@ function gi_ajax_test_openai_connection() {
         wp_send_json_error(['message' => 'APIキーが無効か、接続に失敗しました']);
     }
 }
+// アーカイブページ用AJAX処理
+add_action('wp_ajax_filter_municipality_grants', 'gi_ajax_filter_municipality_grants');
+add_action('wp_ajax_nopriv_filter_municipality_grants', 'gi_ajax_filter_municipality_grants');
+add_action('wp_ajax_filter_prefecture_grants', 'gi_ajax_filter_prefecture_grants');
+add_action('wp_ajax_nopriv_filter_prefecture_grants', 'gi_ajax_filter_prefecture_grants');
+add_action('wp_ajax_filter_category_grants', 'gi_ajax_filter_category_grants');
+add_action('wp_ajax_nopriv_filter_category_grants', 'gi_ajax_filter_category_grants');
+
 // AI検索AJAX
 add_action('wp_ajax_gi_ai_search_grants', 'gi_ajax_ai_search_grants');
 add_action('wp_ajax_nopriv_gi_ai_search_grants', 'gi_ajax_ai_search_grants');
@@ -4431,6 +4439,448 @@ function gi_parse_ai_query($query) {
     }
     
     return $suggestions;
+}
+
+/**
+ * =============================================================================
+ * Archive Pages AJAX Handlers - Municipality, Prefecture, Category
+ * =============================================================================
+ */
+
+/**
+ * 市町村アーカイブページ用AJAX処理
+ */
+function gi_ajax_filter_municipality_grants() {
+    try {
+        // セキュリティチェック
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'gi_ajax_nonce')) {
+            wp_send_json_error(['message' => 'セキュリティチェックに失敗しました']);
+            return;
+        }
+
+        // パラメータ取得
+        $municipality = sanitize_text_field($_POST['municipality'] ?? '');
+        $category = sanitize_text_field($_POST['category'] ?? '');
+        $search = sanitize_text_field($_POST['search'] ?? '');
+        $page = max(1, intval($_POST['page'] ?? 1));
+        $posts_per_page = 12;
+
+        if (empty($municipality)) {
+            wp_send_json_error(['message' => '市町村が指定されていません']);
+            return;
+        }
+
+        // WP_Query構築
+        $args = [
+            'post_type' => 'grant',
+            'posts_per_page' => $posts_per_page,
+            'paged' => $page,
+            'post_status' => 'publish',
+            'tax_query' => [
+                [
+                    'taxonomy' => 'grant_municipality',
+                    'field' => 'slug',
+                    'terms' => $municipality,
+                ]
+            ]
+        ];
+
+        // カテゴリフィルター
+        if (!empty($category)) {
+            $args['tax_query']['relation'] = 'AND';
+            $args['tax_query'][] = [
+                'taxonomy' => 'grant_category',
+                'field' => 'slug',
+                'terms' => $category,
+            ];
+        }
+
+        // 検索
+        if (!empty($search)) {
+            $args['s'] = $search;
+        }
+
+        // ソート
+        $args['orderby'] = 'date';
+        $args['order'] = 'DESC';
+
+        // クエリ実行
+        $query = new WP_Query($args);
+        $grants_html = '';
+
+        if ($query->have_posts()) {
+            while ($query->have_posts()) {
+                $query->the_post();
+                
+                // カード生成
+                $post_id = get_the_ID();
+                $title = get_the_title();
+                $permalink = get_permalink();
+                $organization = get_field('organization', $post_id) ?: '';
+                $amount = get_field('max_amount', $post_id) ?: '金額未設定';
+                $status = get_field('application_status', $post_id) ?: 'open';
+                $status_text = $status === 'open' ? '募集中' : '募集終了';
+                
+                $grants_html .= "
+                <article class='grant-card'>
+                    <div class='card-header'>
+                        <div class='card-category'>
+                            <span>助成金</span>
+                        </div>
+                        <div class='card-status'>{$status_text}</div>
+                    </div>
+                    
+                    <div class='card-content'>
+                        <h3 class='card-title'>
+                            <a href='{$permalink}'>{$title}</a>
+                        </h3>
+                        <p class='card-organization'>{$organization}</p>
+                    </div>
+                    
+                    <div class='card-meta'>
+                        <div class='meta-item amount'>
+                            <span>最大 {$amount}</span>
+                        </div>
+                    </div>
+                    
+                    <div class='card-footer'>
+                        <a href='{$permalink}' class='card-link'>
+                            詳細を見る
+                        </a>
+                    </div>
+                </article>";
+            }
+            wp_reset_postdata();
+        } else {
+            $grants_html = "
+            <div class='no-results'>
+                <h3>該当する助成金・補助金が見つかりませんでした</h3>
+                <p>検索条件を変更してお試しください。</p>
+            </div>";
+        }
+
+        // ページネーション
+        $pagination = '';
+        if ($query->max_num_pages > 1) {
+            $pagination = paginate_links([
+                'total' => $query->max_num_pages,
+                'current' => $page,
+                'format' => '?page=%#%',
+                'type' => 'array'
+            ]);
+            $pagination = $pagination ? '<nav>' . implode('', $pagination) . '</nav>' : '';
+        }
+
+        wp_send_json_success([
+            'html' => $grants_html,
+            'total' => intval($query->found_posts),
+            'showing_from' => (($page - 1) * $posts_per_page) + 1,
+            'showing_to' => min($page * $posts_per_page, intval($query->found_posts)),
+            'pagination' => $pagination,
+            'max_pages' => intval($query->max_num_pages)
+        ]);
+
+    } catch (Exception $e) {
+        error_log('Municipality Filter Error: ' . $e->getMessage());
+        wp_send_json_error(['message' => 'フィルタリング中にエラーが発生しました']);
+    }
+}
+
+/**
+ * 都道府県アーカイブページ用AJAX処理
+ */
+function gi_ajax_filter_prefecture_grants() {
+    try {
+        // セキュリティチェック
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'gi_ajax_nonce')) {
+            wp_send_json_error(['message' => 'セキュリティチェックに失敗しました']);
+            return;
+        }
+
+        // パラメータ取得
+        $prefecture = sanitize_text_field($_POST['prefecture'] ?? '');
+        $category = sanitize_text_field($_POST['category'] ?? '');
+        $search = sanitize_text_field($_POST['search'] ?? '');
+        $organization = sanitize_text_field($_POST['organization'] ?? '');
+        $status = sanitize_text_field($_POST['status'] ?? '');
+        $amount = sanitize_text_field($_POST['amount'] ?? '');
+        $sort = sanitize_text_field($_POST['sort'] ?? 'date_desc');
+        $page = max(1, intval($_POST['page'] ?? 1));
+
+        if (empty($prefecture)) {
+            wp_send_json_error(['message' => '都道府県が指定されていません']);
+            return;
+        }
+
+        // クエリ構築
+        $args = [
+            'post_type' => 'grant',
+            'posts_per_page' => 12,
+            'paged' => $page,
+            'post_status' => 'publish',
+            'tax_query' => [
+                [
+                    'taxonomy' => 'grant_prefecture',
+                    'field' => 'slug',
+                    'terms' => $prefecture,
+                ]
+            ]
+        ];
+
+        // フィルター追加
+        if (!empty($category)) {
+            $args['tax_query']['relation'] = 'AND';
+            $args['tax_query'][] = [
+                'taxonomy' => 'grant_category',
+                'field' => 'slug',
+                'terms' => $category,
+            ];
+        }
+
+        if (!empty($search)) {
+            $args['s'] = $search;
+        }
+
+        // メタクエリ
+        $meta_query = ['relation' => 'AND'];
+        
+        if (!empty($status)) {
+            $meta_query[] = [
+                'key' => 'application_status',
+                'value' => $status,
+                'compare' => '='
+            ];
+        }
+
+        if (!empty($organization)) {
+            $meta_query[] = [
+                'key' => 'organization',
+                'value' => $organization,
+                'compare' => 'LIKE'
+            ];
+        }
+
+        if (count($meta_query) > 1) {
+            $args['meta_query'] = $meta_query;
+        }
+
+        // ソート
+        switch ($sort) {
+            case 'amount_desc':
+                $args['orderby'] = 'meta_value_num';
+                $args['meta_key'] = 'max_amount_numeric';
+                $args['order'] = 'DESC';
+                break;
+            default:
+                $args['orderby'] = 'date';
+                $args['order'] = 'DESC';
+        }
+
+        // クエリ実行と結果処理
+        $query = new WP_Query($args);
+        $grants_html = gi_generate_grants_html($query);
+        
+        wp_send_json_success([
+            'html' => $grants_html,
+            'total' => intval($query->found_posts),
+            'showing_from' => (($page - 1) * 12) + 1,
+            'showing_to' => min($page * 12, intval($query->found_posts)),
+            'pagination' => gi_generate_pagination($query, $page),
+            'max_pages' => intval($query->max_num_pages)
+        ]);
+
+    } catch (Exception $e) {
+        error_log('Prefecture Filter Error: ' . $e->getMessage());
+        wp_send_json_error(['message' => 'フィルタリング中にエラーが発生しました']);
+    }
+}
+
+/**
+ * カテゴリアーカイブページ用AJAX処理
+ */
+function gi_ajax_filter_category_grants() {
+    try {
+        // セキュリティチェック
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'gi_ajax_nonce')) {
+            wp_send_json_error(['message' => 'セキュリティチェックに失敗しました']);
+            return;
+        }
+
+        // パラメータ取得
+        $category = sanitize_text_field($_POST['category'] ?? '');
+        $prefecture = sanitize_text_field($_POST['prefecture'] ?? '');
+        $search = sanitize_text_field($_POST['search'] ?? '');
+        $status = sanitize_text_field($_POST['status'] ?? '');
+        $amount = sanitize_text_field($_POST['amount'] ?? '');
+        $sort = sanitize_text_field($_POST['sort'] ?? 'date_desc');
+        $page = max(1, intval($_POST['page'] ?? 1));
+
+        if (empty($category)) {
+            wp_send_json_error(['message' => 'カテゴリーが指定されていません']);
+            return;
+        }
+
+        // クエリ構築
+        $args = [
+            'post_type' => 'grant',
+            'posts_per_page' => 12,
+            'paged' => $page,
+            'post_status' => 'publish',
+            'tax_query' => [
+                [
+                    'taxonomy' => 'grant_category',
+                    'field' => 'slug',
+                    'terms' => $category,
+                ]
+            ]
+        ];
+
+        // 都道府県フィルター
+        if (!empty($prefecture)) {
+            $args['tax_query']['relation'] = 'AND';
+            $args['tax_query'][] = [
+                'taxonomy' => 'grant_prefecture',
+                'field' => 'slug',
+                'terms' => $prefecture,
+            ];
+        }
+
+        if (!empty($search)) {
+            $args['s'] = $search;
+        }
+
+        // クエリ実行と結果処理
+        $query = new WP_Query($args);
+        $grants_html = gi_generate_grants_html($query);
+        
+        wp_send_json_success([
+            'html' => $grants_html,
+            'total' => intval($query->found_posts),
+            'showing_from' => (($page - 1) * 12) + 1,
+            'showing_to' => min($page * 12, intval($query->found_posts)),
+            'pagination' => gi_generate_pagination($query, $page),
+            'max_pages' => intval($query->max_num_pages)
+        ]);
+
+    } catch (Exception $e) {
+        error_log('Category Filter Error: ' . $e->getMessage());
+        wp_send_json_error(['message' => 'フィルタリング中にエラーが発生しました']);
+    }
+}
+
+/**
+ * 助成金HTML生成ヘルパー関数
+ */
+function gi_generate_grants_html($query) {
+    $html = '';
+    
+    if ($query->have_posts()) {
+        while ($query->have_posts()) {
+            $query->the_post();
+            
+            $post_id = get_the_ID();
+            $title = get_the_title();
+            $permalink = get_permalink();
+            $excerpt = wp_trim_words(get_the_excerpt(), 30);
+            $organization = get_field('organization', $post_id) ?: '';
+            $amount = get_field('max_amount', $post_id) ?: '金額未設定';
+            $deadline = get_field('deadline', $post_id) ?: '';
+            $status = get_field('application_status', $post_id) ?: 'open';
+            
+            // カテゴリー取得
+            $categories = wp_get_post_terms($post_id, 'grant_category', ['fields' => 'names']);
+            $category_name = !empty($categories) ? $categories[0] : '未分類';
+            
+            $status_text = $status === 'open' ? '募集中' : ($status === 'upcoming' ? '募集予定' : '募集終了');
+            
+            $html .= "
+            <article class='grant-card'>
+                <div class='card-header'>
+                    <div class='card-category'>
+                        <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
+                            <path d='M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z'/>
+                        </svg>
+                        <span>{$category_name}</span>
+                    </div>
+                    " . ($deadline ? "<div class='card-deadline'>
+                        <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
+                            <circle cx='12' cy='12' r='10'/>
+                            <polyline points='12 6 12 12 16 14'/>
+                        </svg>
+                        <span>" . esc_html(date('Y/m/d', strtotime($deadline))) . "</span>
+                    </div>" : "") . "
+                </div>
+
+                <div class='card-content'>
+                    <h3 class='card-title'>
+                        <a href='{$permalink}'>{$title}</a>
+                    </h3>
+                    <p class='card-excerpt'>{$excerpt}</p>
+                </div>
+
+                <div class='card-meta'>
+                    " . ($organization ? "<div class='meta-item organization'>
+                        <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
+                            <path d='M3 21h18M5 21V7l8-4v18M19 21V11l-6-4'/>
+                        </svg>
+                        <span>{$organization}</span>
+                    </div>" : "") . "
+                    
+                    <div class='meta-item amount'>
+                        <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
+                            <line x1='12' y1='1' x2='12' y2='23'/>
+                            <path d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'/>
+                        </svg>
+                        <span>最大 {$amount}</span>
+                    </div>
+                </div>
+
+                <div class='card-footer'>
+                    <a href='{$permalink}' class='card-link'>
+                        詳細を見る
+                        <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
+                            <polyline points='9 18 15 12 9 6'/>
+                        </svg>
+                    </a>
+                </div>
+            </article>";
+        }
+        wp_reset_postdata();
+    } else {
+        $html = "
+        <div class='no-results'>
+            <div class='no-results-icon'>
+                <svg width='64' height='64' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
+                    <circle cx='11' cy='11' r='8'/>
+                    <path d='m21 21-4.35-4.35'/>
+                </svg>
+            </div>
+            <h3>該当する助成金・補助金が見つかりませんでした</h3>
+            <p>検索条件を変更してお試しください。</p>
+        </div>";
+    }
+    
+    return $html;
+}
+
+/**
+ * ページネーション生成ヘルパー関数
+ */
+function gi_generate_pagination($query, $current_page) {
+    if ($query->max_num_pages <= 1) {
+        return '';
+    }
+    
+    $links = paginate_links([
+        'total' => $query->max_num_pages,
+        'current' => $current_page,
+        'format' => '?page=%#%',
+        'type' => 'array',
+        'prev_text' => '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg> 前へ',
+        'next_text' => '次へ <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>',
+    ]);
+    
+    return $links ? '<nav class="pagination">' . implode('', $links) . '</nav>' : '';
 }
 
 /**

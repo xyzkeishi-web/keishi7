@@ -1403,7 +1403,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 grantsGrid.innerHTML = data.data.html;
                 
                 if (resultsCount) {
-                    resultsCount.textContent = `${data.data.total}件の助成金・補助金`;
+                    const totalCount = parseInt(data.data.total) || 0;
+                    resultsCount.textContent = `${totalCount.toLocaleString()}件の助成金・補助金`;
                 }
                 
                 if (paginationNav) {
@@ -1418,6 +1419,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         <p>エラーが発生しました: ${data.data || 'データの取得に失敗しました'}</p>
                     </div>
                 `;
+                if (resultsCount) {
+                    resultsCount.textContent = '0件の助成金・補助金';
+                }
             }
         })
         .catch(error => {
@@ -1427,6 +1431,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p>通信エラーが発生しました。しばらく時間をおいてから再度お試しください。</p>
                 </div>
             `;
+            if (resultsCount) {
+                resultsCount.textContent = '0件の助成金・補助金';
+            }
         });
     }
 
