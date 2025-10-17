@@ -50,12 +50,8 @@ if ($current_region) {
     }
 }
 
-// パンくずリスト用データ
-$breadcrumbs = [
-    ['name' => 'ホーム', 'url' => home_url()],
-    ['name' => '助成金・補助金検索', 'url' => get_post_type_archive_link('grant')],
-    ['name' => $prefecture_name, 'url' => '']
-];
+// 統一パンくずリストシステムを使用
+// 都道府県固有のデータは gi_generate_breadcrumb_data() 内で自動生成
 ?>
 
 <!-- SEOメタ情報 -->
@@ -71,21 +67,7 @@ $breadcrumbs = [
     "name": "<?php echo esc_js($prefecture_name); ?>の助成金一覧",
     "numberOfItems": <?php echo intval($prefecture_count); ?>
   },
-  "breadcrumb": {
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      <?php foreach ($breadcrumbs as $index => $breadcrumb): ?>
-      {
-        "@type": "ListItem",
-        "position": <?php echo $index + 1; ?>,
-        "name": "<?php echo esc_js($breadcrumb['name']); ?>"
-        <?php if (!empty($breadcrumb['url'])): ?>
-        ,"item": "<?php echo esc_url($breadcrumb['url']); ?>"
-        <?php endif; ?>
-      }<?php echo $index < count($breadcrumbs) - 1 ? ',' : ''; ?>
-      <?php endforeach; ?>
-    ]
-  },
+  "breadcrumb": <?php echo gi_generate_breadcrumb_json_ld(); ?>,
   "geo": {
     "@type": "Place",
     "name": "<?php echo esc_js($prefecture_name); ?>",
@@ -103,22 +85,8 @@ $breadcrumbs = [
     <!-- ヒーローセクション -->
     <section class="prefecture-hero">
         <div class="container">
-            <!-- パンくずリスト -->
-            <nav class="breadcrumb-nav" aria-label="パンくずリスト">
-                <ol class="breadcrumb-list">
-                    <?php foreach ($breadcrumbs as $breadcrumb): ?>
-                    <li class="breadcrumb-item">
-                        <?php if (!empty($breadcrumb['url'])): ?>
-                            <a href="<?php echo esc_url($breadcrumb['url']); ?>" class="breadcrumb-link">
-                                <?php echo esc_html($breadcrumb['name']); ?>
-                            </a>
-                        <?php else: ?>
-                            <span class="breadcrumb-current"><?php echo esc_html($breadcrumb['name']); ?></span>
-                        <?php endif; ?>
-                    </li>
-                    <?php endforeach; ?>
-                </ol>
-            </nav>
+            <!-- 統一パンくずナビゲーション -->
+            <?php gi_render_breadcrumb_html(); ?>
 
             <!-- ページヘッダー -->
             <div class="prefecture-header">
@@ -553,49 +521,7 @@ $breadcrumbs = [
     padding: 0 20px;
 }
 
-/* パンくずリスト */
-.breadcrumb-nav {
-    margin-bottom: 30px;
-    padding: 15px 0;
-}
-
-.breadcrumb-list {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.breadcrumb-item {
-    display: flex;
-    align-items: center;
-    font-size: 14px;
-}
-
-.breadcrumb-item:not(:last-child)::after {
-    content: '>';
-    margin-left: 8px;
-    color: #999;
-    font-size: 12px;
-}
-
-.breadcrumb-link {
-    color: #666;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.breadcrumb-link:hover {
-    color: #000;
-}
-
-.breadcrumb-current {
-    color: #000;
-    font-weight: 600;
-}
+/* パンくずリスト - 統一CSSファイル（breadcrumbs.css）を使用 */
 
 /* ヒーローセクション */
 .prefecture-hero {

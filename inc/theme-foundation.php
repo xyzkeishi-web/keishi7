@@ -765,7 +765,253 @@ function gi_reset_location_data() {
  */
 
 /**
- * パンくずリスト生成関数
+ * =============================================================================
+ * 統一パンくずリスト生成システム
+ * =============================================================================
+ */
+
+/**
+ * 統一的なパンくずリスト配列を生成
+ *
+ * @param array $additional_items 追加のパンくずリスト項目
+ * @return array パンくずリスト配列
+ */
+function gi_generate_breadcrumb_data($additional_items = []) {
+    $breadcrumbs = [];
+    
+    // 必ずホームから開始
+    $breadcrumbs[] = [
+        'name' => 'ホーム',
+        'url' => home_url(),
+        'type' => 'home'
+    ];
+    
+    // ページタイプに応じてパンくずリストを生成
+    if (is_front_page()) {
+        // フロントページの場合は何も追加しない
+        return $breadcrumbs;
+    }
+    
+    // 助成金関連ページの場合
+    if (is_post_type_archive('grant') || is_tax(['grant_category', 'grant_prefecture', 'grant_municipality']) || is_singular('grant')) {
+        $breadcrumbs[] = [
+            'name' => '助成金・補助金検索',
+            'url' => get_post_type_archive_link('grant'),
+            'type' => 'archive'
+        ];
+        
+        // タクソノミーページの場合
+        if (is_tax('grant_category')) {
+            $current_term = get_queried_object();
+            $breadcrumbs[] = [
+                'name' => $current_term->name,
+                'url' => '',
+                'type' => 'category_current'
+            ];
+        } elseif (is_tax('grant_prefecture')) {
+            $current_term = get_queried_object();
+            $breadcrumbs[] = [
+                'name' => $current_term->name,
+                'url' => '',
+                'type' => 'prefecture_current'
+            ];
+        } elseif (is_tax('grant_municipality')) {
+            $current_term = get_queried_object();
+            
+            // 親都道府県を特定
+            $prefecture_data = gi_get_all_prefectures();
+            $parent_prefecture = null;
+            
+            foreach ($prefecture_data as $pref) {
+                $municipalities = gi_get_municipalities_by_prefecture($pref['slug']);
+                if (in_array($current_term->name, $municipalities)) {
+                    $parent_prefecture = [
+                        'name' => $pref['name'],
+                        'slug' => $pref['slug']
+                    ];
+                    break;
+                }
+            }
+            
+            // 都道府県リンクを追加
+            if ($parent_prefecture) {
+                $breadcrumbs[] = [
+                    'name' => $parent_prefecture['name'],
+                    'url' => get_term_link($parent_prefecture['slug'], 'grant_prefecture'),
+                    'type' => 'prefecture_parent'
+                ];
+            }
+            
+            // 現在の市町村を追加
+            $breadcrumbs[] = [
+                'name' => $current_term->name,
+                'url' => '',
+                'type' => 'municipality_current'
+            ];
+        } elseif (is_singular('grant')) {
+            // 個別助成金ページの場合
+            $post_categories = wp_get_post_terms(get_the_ID(), 'grant_category');
+            if (!empty($post_categories)) {
+                $breadcrumbs[] = [
+                    'name' => $post_categories[0]->name,
+                    'url' => get_term_link($post_categories[0]),
+                    'type' => 'category_parent'
+                ];
+            }
+            
+            $breadcrumbs[] = [
+                'name' => get_the_title(),
+                'url' => '',
+                'type' => 'single_current'
+            ];
+        }
+    }
+    
+    // 一般的なページの場合
+    elseif (is_page()) {
+        // 親ページがある場合
+        $post = get_queried_object();
+        $parents = [];
+        
+        if ($post->post_parent) {
+            $parent_id = $post->post_parent;
+            while ($parent_id) {
+                $parent = get_post($parent_id);
+                $parents[] = [
+                    'name' => $parent->post_title,
+                    'url' => get_permalink($parent),
+                    'type' => 'page_parent'
+                ];
+                $parent_id = $parent->post_parent;
+            }
+        }
+        
+        // 親ページを逆順で追加
+        $breadcrumbs = array_merge($breadcrumbs, array_reverse($parents));
+        
+        // 現在のページ
+        $breadcrumbs[] = [
+            'name' => get_the_title(),
+            'url' => '',
+            'type' => 'page_current'
+        ];
+    }
+    
+    // 追加項目があれば結合
+    if (!empty($additional_items)) {
+        $breadcrumbs = array_merge($breadcrumbs, $additional_items);
+    }
+    
+    return $breadcrumbs;
+}
+
+/**
+ * パンくずリストのHTML出力（統一版）
+ *
+ * @param array $breadcrumbs パンくずリスト配列
+ * @param array $options 出力オプション
+ */
+function gi_render_breadcrumb_html($breadcrumbs = null, $options = []) {
+    if (is_null($breadcrumbs)) {
+        $breadcrumbs = gi_generate_breadcrumb_data();
+    }
+    
+    // フロントページでは表示しない
+    if (is_front_page() || empty($breadcrumbs) || count($breadcrumbs) <= 1) {
+        return;
+    }
+    
+    // デフォルトオプション
+    $defaults = [
+        'container_class' => 'breadcrumb-nav',
+        'list_class' => 'breadcrumb-list',
+        'item_class' => 'breadcrumb-item',
+        'link_class' => 'breadcrumb-link',
+        'current_class' => 'breadcrumb-current',
+        'separator' => '›',
+        'aria_label' => 'パンくずナビゲーション',
+        'show_home_icon' => true,
+        'show_separator_icon' => true
+    ];
+    
+    $options = array_merge($defaults, $options);
+    
+    echo '<nav class="' . esc_attr($options['container_class']) . '" aria-label="' . esc_attr($options['aria_label']) . '">';
+    echo '<ol class="' . esc_attr($options['list_class']) . '">';
+    
+    foreach ($breadcrumbs as $index => $crumb) {
+        echo '<li class="' . esc_attr($options['item_class']) . '">';
+        
+        if ($crumb['url']) {
+            echo '<a href="' . esc_url($crumb['url']) . '" class="' . esc_attr($options['link_class']) . '">';
+            
+            // ホームアイコンを表示
+            if ($index === 0 && $options['show_home_icon'] && $crumb['type'] === 'home') {
+                echo '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">';
+                echo '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>';
+                echo '<polyline points="9,22 9,12 15,12 15,22"/>';
+                echo '</svg>';
+                echo '<span>' . esc_html($crumb['name']) . '</span>';
+            } else {
+                echo esc_html($crumb['name']);
+            }
+            
+            echo '</a>';
+        } else {
+            echo '<span class="' . esc_attr($options['current_class']) . '">';
+            echo esc_html($crumb['name']);
+            echo '</span>';
+        }
+        
+        echo '</li>';
+    }
+    
+    echo '</ol>';
+    echo '</nav>';
+}
+
+/**
+ * パンくずリスト用JSON-LD構造化データ生成
+ *
+ * @param array $breadcrumbs パンくずリスト配列
+ * @return string JSON-LD文字列
+ */
+function gi_generate_breadcrumb_json_ld($breadcrumbs = null) {
+    if (is_null($breadcrumbs)) {
+        $breadcrumbs = gi_generate_breadcrumb_data();
+    }
+    
+    if (empty($breadcrumbs) || count($breadcrumbs) <= 1) {
+        return '';
+    }
+    
+    $json_items = [];
+    
+    foreach ($breadcrumbs as $index => $crumb) {
+        $item = [
+            '@type' => 'ListItem',
+            'position' => $index + 1,
+            'name' => $crumb['name']
+        ];
+        
+        if ($crumb['url']) {
+            $item['item'] = $crumb['url'];
+        }
+        
+        $json_items[] = $item;
+    }
+    
+    $breadcrumb_data = [
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => $json_items
+    ];
+    
+    return json_encode($breadcrumb_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
+/**
+ * 旧パンくずリスト生成関数（下位互換性のため保持）
+ * @deprecated 新しいgi_render_breadcrumb_html()を使用してください
  */
 function gi_breadcrumbs() {
     if (is_front_page()) return;

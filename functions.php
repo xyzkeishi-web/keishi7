@@ -82,6 +82,73 @@ foreach ($required_files as $file) {
     }
 }
 
+/**
+ * =============================================================================
+ * テーマスタイル & スクリプト読み込み
+ * =============================================================================
+ */
+
+/**
+ * テーマのCSS・JSファイルを読み込み
+ */
+function gi_enqueue_scripts() {
+    // メインスタイル
+    wp_enqueue_style(
+        'gi-main-style',
+        get_stylesheet_uri(),
+        [],
+        GI_THEME_VERSION
+    );
+    
+    // 統一パンくずリストCSS
+    wp_enqueue_style(
+        'gi-breadcrumbs',
+        get_template_directory_uri() . '/assets/css/breadcrumbs.css',
+        [],
+        GI_THEME_VERSION
+    );
+    
+    // フロントエンドCSS
+    if (file_exists(get_template_directory() . '/assets/css/unified-frontend.css')) {
+        wp_enqueue_style(
+            'gi-frontend',
+            get_template_directory_uri() . '/assets/css/unified-frontend.css',
+            ['gi-main-style'],
+            GI_THEME_VERSION
+        );
+    }
+    
+    // jQuery（WordPressバンドル版を使用）
+    wp_enqueue_script('jquery');
+    
+    // AJAX用のlocalize
+    if (function_exists('wp_localize_script')) {
+        wp_localize_script('jquery', 'gi_ajax_object', [
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('gi_ajax_nonce'),
+            'strings' => [
+                'loading' => '読み込み中...',
+                'error' => 'エラーが発生しました',
+                'no_results' => '結果が見つかりません'
+            ]
+        ]);
+    }
+}
+add_action('wp_enqueue_scripts', 'gi_enqueue_scripts');
+
+/**
+ * 管理画面用スタイル
+ */
+function gi_admin_enqueue_scripts() {
+    wp_enqueue_style(
+        'gi-admin-style',
+        get_template_directory_uri() . '/assets/css/admin.css',
+        [],
+        GI_THEME_VERSION
+    );
+}
+add_action('admin_enqueue_scripts', 'gi_admin_enqueue_scripts');
+
 // グローバルで使えるヘルパー関数
 if (!function_exists('gi_render_card')) {
     function gi_render_card($post_id, $view = 'grid') {
