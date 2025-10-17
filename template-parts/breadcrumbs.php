@@ -13,6 +13,11 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// 関数が存在するかチェック
+if (!function_exists('gi_generate_breadcrumb_data')) {
+    return;
+}
+
 // パンくずリストデータを取得
 $breadcrumbs = gi_generate_breadcrumb_data();
 
@@ -27,18 +32,36 @@ $show_schema = isset($args['show_schema']) ? $args['show_schema'] : true;
 
 ?>
 
-<?php if ($show_schema): ?>
+<?php if ($show_schema && function_exists('gi_generate_breadcrumb_json_ld')): ?>
 <!-- パンくずリスト用構造化データ（JSON-LD） -->
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "breadcrumb": <?php echo gi_generate_breadcrumb_json_ld($breadcrumbs); ?>
-}
+<?php echo gi_generate_breadcrumb_json_ld($breadcrumbs); ?>
 </script>
 <?php endif; ?>
 
 <!-- パンくずリストHTML -->
-<?php gi_render_breadcrumb_html($breadcrumbs, $breadcrumb_options); ?>
+<?php 
+if (function_exists('gi_render_breadcrumb_html')) {
+    gi_render_breadcrumb_html($breadcrumbs, $breadcrumb_options); 
+} else {
+    // フォールバック: 簡単なパンくずリスト表示
+    echo '<nav class="gi-breadcrumbs"><ol class="breadcrumb-list">';
+    foreach ($breadcrumbs as $index => $crumb) {
+        $is_last = ($index === count($breadcrumbs) - 1);
+        echo '<li class="breadcrumb-item' . ($is_last ? ' current' : '') . '">';
+        if ($is_last) {
+            echo '<span>' . esc_html($crumb['name']) . '</span>';
+        } else {
+            echo '<a href="' . esc_url($crumb['url']) . '">' . esc_html($crumb['name']) . '</a>';
+        }
+        if (!$is_last) {
+            echo '<span class="separator"> > </span>';
+        }
+        echo '</li>';
+    }
+    echo '</ol></nav>';
+}
+?>
 
 <?php
 /**

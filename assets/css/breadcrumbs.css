@@ -5,7 +5,57 @@
  * 
  * 全ページで統一されたパンくずリストのスタイル定義
  * アクセシビリティとレスポンシブデザインに対応
+ * SEO改善版の新しいクラス名にも対応
  */
+
+/* ===== 新しいSEO実装対応 ===== */
+.gi-breadcrumbs {
+    margin: 1rem 0;
+    font-size: 0.875rem;
+    padding: 12px 0;
+    border-bottom: 1px solid #e5e7eb;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.gi-breadcrumbs .breadcrumb-list {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+}
+
+.gi-breadcrumbs .breadcrumb-item {
+    display: flex;
+    align-items: center;
+}
+
+.gi-breadcrumbs .breadcrumb-item:not(:last-child) {
+    margin-right: 0.5rem;
+}
+
+.gi-breadcrumbs .breadcrumb-item a {
+    color: #6b7280;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.gi-breadcrumbs .breadcrumb-item a:hover {
+    color: #374151;
+    text-decoration: underline;
+}
+
+.gi-breadcrumbs .breadcrumb-item.current span {
+    color: #1f2937;
+    font-weight: 500;
+}
+
+.gi-breadcrumbs .separator {
+    margin: 0 0.5rem;
+    color: #9ca3af;
+    font-size: 0.75rem;
+}
 
 /* ===== パンくずリストコンテナ ===== */
 .breadcrumb-nav {

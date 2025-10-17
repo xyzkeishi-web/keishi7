@@ -66,7 +66,10 @@ $required_files = array(
     // Google Sheets integration (consolidated into one file)
     'google-sheets-integration.php', // Google Sheets統合（全機能統合版）
     'safe-sync-manager.php',         // 安全同期管理システム
-    'disable-auto-sync.php'          // 自動同期無効化
+    'disable-auto-sync.php',         // 自動同期無効化
+    
+    // SEO Enhancement
+    'seo-enhancements.php'           // SEO最適化機能（メタタグ、OGP、構造化データ）
 );
 
 // ファイルを安全に読み込み
