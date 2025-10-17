@@ -167,18 +167,16 @@ $schema_data = array(
    ヒーローセクション - サーチスタイル統一版
    ============================================ */
 
-/* ベース設定 - スクロール問題修正版 */
+/* ベース設定 */
 .gih-hero-section {
     position: relative;
-    /* 修正: min-height: 100vhを削除し、auto heightに変更 */
-    min-height: auto;
+    min-height: 100vh;
     height: auto;
     display: flex;
     align-items: center;
     padding: 120px 0 80px;
     background: #ffffff;
     font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
-    /* 修正: overflow: hiddenを削除してvisibleに変更 */
     overflow: visible;
     
     /* スマホスクロール最適化 */
@@ -196,7 +194,7 @@ $schema_data = array(
     padding: 0 20px;
 }
 
-/* デスクトップレイアウト - スクロール最適化 */
+/* デスクトップレイアウト */
 .gih-desktop-layout {
     display: none;
 }
@@ -206,10 +204,10 @@ $schema_data = array(
         display: block;
     }
     
-    /* デスクトップでも適切な高さ設定 */
     .gih-hero-section {
-        min-height: 90vh !important;
-        height: auto !important;
+        min-height: 100vh;
+        height: auto;
+        overflow: visible;
     }
 }
 
@@ -546,18 +544,15 @@ $schema_data = array(
     }
 }
 
-/* スマホ最適化 - スクロール問題完全解決 */
+/* スマホ最適化 */
 @media (max-width: 640px) {
     .gih-hero-section {
-        min-height: auto !important;
-        height: auto !important;
+        min-height: auto;
         padding: 80px 0 40px;
         
         /* スクロール問題解決 */
-        overflow: visible !important;
-        /* タッチスクロール最適化 */
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: auto;
+        height: auto;
+        overflow: visible;
     }
     
     .gih-container {
