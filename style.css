@@ -59,6 +59,10 @@ html {
     scroll-behavior: smooth;
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
+    /* スクロール問題修正: overflow設定を明示的に指定 */
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: 100%;
 }
 
 body {
@@ -68,7 +72,14 @@ body {
     background-color: var(--color-white);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* スクロール問題修正: min-height代わりにheight: autoを使用 */
     min-height: 100vh;
+    height: auto;
+    /* スクロール設定を明示的に指定 */
+    overflow-x: hidden;
+    overflow-y: auto;
+    /* タッチスクロール最適化 */
+    -webkit-overflow-scrolling: touch;
 }
 
 a {
@@ -98,6 +109,73 @@ textarea {
 
 button {
     cursor: pointer;
+}
+
+/* ==========================================================================
+   スクロール問題修正 - 追加設定
+   ========================================================================== */
+
+/* WordPress管理バーとの競合を防ぐ */
+.admin-bar .site-header {
+    top: 32px;
+}
+
+@media screen and (max-width: 782px) {
+    .admin-bar .site-header {
+        top: 46px;
+    }
+}
+
+/* 一般的なスクロール問題の修正 */
+#page,
+.site,
+.site-content,
+.main,
+.site-main {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* モーダルやオーバーレイ使用時のスクロール無効化対策 */
+body.modal-open,
+body.no-scroll {
+    overflow: auto !important;
+    position: static !important;
+}
+
+/* iOS Safariでの100vh問題対応 */
+@supports (-webkit-touch-callout: none) {
+    .full-height {
+        min-height: -webkit-fill-available;
+    }
+}
+
+/* タッチデバイスでのスクロール最適化 */
+@media (hover: none) and (pointer: coarse) {
+    html {
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    body {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+    }
+}
+
+/* アクセシビリティ: 動作を減らす設定のユーザーへの配慮 */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto !important;
+    }
+    
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
     border: none;
     background: none;
 }

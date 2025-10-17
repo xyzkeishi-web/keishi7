@@ -167,20 +167,23 @@ $schema_data = array(
    ヒーローセクション - サーチスタイル統一版
    ============================================ */
 
-/* ベース設定 */
+/* ベース設定 - スクロール問題修正版 */
 .gih-hero-section {
     position: relative;
-    min-height: 100vh;
+    /* 修正: min-height: 100vhを削除し、auto heightに変更 */
+    min-height: auto;
+    height: auto;
     display: flex;
     align-items: center;
     padding: 120px 0 80px;
     background: #ffffff;
     font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
-    overflow: hidden;
+    /* 修正: overflow: hiddenを削除してvisibleに変更 */
+    overflow: visible;
     
     /* スマホスクロール最適化 */
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+    overscroll-behavior: auto;
 }
 
 /* コンテナ */
@@ -193,7 +196,7 @@ $schema_data = array(
     padding: 0 20px;
 }
 
-/* デスクトップレイアウト */
+/* デスクトップレイアウト - スクロール最適化 */
 .gih-desktop-layout {
     display: none;
 }
@@ -201,6 +204,12 @@ $schema_data = array(
 @media (min-width: 1024px) {
     .gih-desktop-layout {
         display: block;
+    }
+    
+    /* デスクトップでも適切な高さ設定 */
+    .gih-hero-section {
+        min-height: 90vh !important;
+        height: auto !important;
     }
 }
 
@@ -537,15 +546,18 @@ $schema_data = array(
     }
 }
 
-/* スマホ最適化 */
+/* スマホ最適化 - スクロール問題完全解決 */
 @media (max-width: 640px) {
     .gih-hero-section {
-        min-height: auto;
+        min-height: auto !important;
+        height: auto !important;
         padding: 80px 0 40px;
         
         /* スクロール問題解決 */
-        height: auto;
-        overflow: visible;
+        overflow: visible !important;
+        /* タッチスクロール最適化 */
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: auto;
     }
     
     .gih-container {
