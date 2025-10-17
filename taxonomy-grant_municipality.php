@@ -1357,8 +1357,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const paginationNav = document.getElementById('paginationNav');
 
     if (filterForm) {
-        // ページ読み込み時に初期データを取得
-        loadGrants();
+        // 初期表示は server-rendered content を使用
 
         filterForm.addEventListener('submit', function(e) {
             e.preventDefault();

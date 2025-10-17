@@ -4463,8 +4463,6 @@ function gi_ajax_filter_municipality_grants() {
         $category = sanitize_text_field($_POST['category'] ?? '');
         $search = sanitize_text_field($_POST['search'] ?? '');
         $page = max(1, intval($_POST['page'] ?? 1));
-        $posts_per_page = 12;
-
         if (empty($municipality)) {
             wp_send_json_error(['message' => '市町村が指定されていません']);
             return;
@@ -4473,7 +4471,7 @@ function gi_ajax_filter_municipality_grants() {
         // WP_Query構築
         $args = [
             'post_type' => 'grant',
-            'posts_per_page' => $posts_per_page,
+            'posts_per_page' => 12,
             'paged' => $page,
             'post_status' => 'publish',
             'tax_query' => [
@@ -4506,76 +4504,16 @@ function gi_ajax_filter_municipality_grants() {
 
         // クエリ実行
         $query = new WP_Query($args);
-        $grants_html = '';
-
-        if ($query->have_posts()) {
-            while ($query->have_posts()) {
-                $query->the_post();
-                
-                // カード生成
-                $post_id = get_the_ID();
-                $title = get_the_title();
-                $permalink = get_permalink();
-                $organization = get_field('organization', $post_id) ?: '';
-                $amount = get_field('max_amount', $post_id) ?: '金額未設定';
-                $status = get_field('application_status', $post_id) ?: 'open';
-                $status_text = $status === 'open' ? '募集中' : '募集終了';
-                
-                $grants_html .= "
-                <article class='grant-card'>
-                    <div class='card-header'>
-                        <div class='card-category'>
-                            <span>助成金</span>
-                        </div>
-                        <div class='card-status'>{$status_text}</div>
-                    </div>
-                    
-                    <div class='card-content'>
-                        <h3 class='card-title'>
-                            <a href='{$permalink}'>{$title}</a>
-                        </h3>
-                        <p class='card-organization'>{$organization}</p>
-                    </div>
-                    
-                    <div class='card-meta'>
-                        <div class='meta-item amount'>
-                            <span>最大 {$amount}</span>
-                        </div>
-                    </div>
-                    
-                    <div class='card-footer'>
-                        <a href='{$permalink}' class='card-link'>
-                            詳細を見る
-                        </a>
-                    </div>
-                </article>";
-            }
-            wp_reset_postdata();
-        } else {
-            $grants_html = "
-            <div class='no-results'>
-                <h3>該当する助成金・補助金が見つかりませんでした</h3>
-                <p>検索条件を変更してお試しください。</p>
-            </div>";
-        }
+        $grants_html = gi_generate_grants_html($query);
 
         // ページネーション
-        $pagination = '';
-        if ($query->max_num_pages > 1) {
-            $pagination = paginate_links([
-                'total' => $query->max_num_pages,
-                'current' => $page,
-                'format' => '?page=%#%',
-                'type' => 'array'
-            ]);
-            $pagination = $pagination ? '<nav>' . implode('', $pagination) . '</nav>' : '';
-        }
+        $pagination = gi_generate_pagination($query, $page);
 
         wp_send_json_success([
             'html' => $grants_html,
             'total' => intval($query->found_posts),
-            'showing_from' => (($page - 1) * $posts_per_page) + 1,
-            'showing_to' => min($page * $posts_per_page, intval($query->found_posts)),
+            'showing_from' => (($page - 1) * 12) + 1,
+            'showing_to' => min($page * 12, intval($query->found_posts)),
             'pagination' => $pagination,
             'max_pages' => intval($query->max_num_pages)
         ]);
