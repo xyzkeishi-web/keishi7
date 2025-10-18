@@ -669,18 +669,9 @@ function gi_add_strategic_internal_links($content) {
     
     return $content;
 }
-add_filter('the_content', 'gi_add_strategic_internal_links', 20);
+// Note: Internal linking is handled by gi_add_strategic_internal_links_enhanced in seo-fixes-comprehensive.php
 
-/**
- * タクソノミースラッグからリンク取得
- */
-function get_term_link_by_slug($slug, $taxonomy) {
-    $term = get_term_by('slug', $slug, $taxonomy);
-    if ($term && !is_wp_error($term)) {
-        return get_term_link($term);
-    }
-    return '';
-}
+// Note: get_term_link_by_slug function is defined in seo-fixes-comprehensive.php to prevent duplication
 
 /**
  * 関連助成金セクション生成 - 強化版
@@ -1087,6 +1078,6 @@ Crawl-delay: 1
     
     return $output . $additional_rules;
 }
-add_filter('robots_txt', 'gi_optimize_robots_txt', 10, 2);
+// Note: robots.txt optimization is handled by gi_optimize_robots_txt_comprehensive in seo-fixes-comprehensive.php
 
 // EOF
