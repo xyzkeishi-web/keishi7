@@ -87,57 +87,70 @@ foreach ($required_files as $file) {
 
 /**
  * =============================================================================
- * テーマスタイル & スクリプト読み込み
+ * SEO最適化機能
  * =============================================================================
  */
 
 /**
- * テーマのCSS・JSファイルを読み込み
+ * タイトルタグの最適化（60文字以内）
  */
-function gi_enqueue_scripts() {
-    // メインスタイル
-    wp_enqueue_style(
-        'gi-main-style',
-        get_stylesheet_uri(),
-        [],
-        GI_THEME_VERSION
-    );
-    
-    // 統一パンくずリストCSS
-    wp_enqueue_style(
-        'gi-breadcrumbs',
-        get_template_directory_uri() . '/assets/css/breadcrumbs.css',
-        [],
-        GI_THEME_VERSION
-    );
-    
-    // フロントエンドCSS
-    if (file_exists(get_template_directory() . '/assets/css/unified-frontend.css')) {
-        wp_enqueue_style(
-            'gi-frontend',
-            get_template_directory_uri() . '/assets/css/unified-frontend.css',
-            ['gi-main-style'],
-            GI_THEME_VERSION
-        );
+function gi_optimize_document_title($title_parts) {
+    if (is_singular('grant')) {
+        global $post;
+        $grant_title = get_the_title();
+        $organization = function_exists('get_field') ? get_field('organization', $post->ID) : '';
+        
+        // タイトルの長さを制限（日本語SEO最適化：32文字以内に収める）
+        $site_name = get_bloginfo('name');
+        $max_title_length = 32 - mb_strlen($site_name, 'UTF-8') - 3; // " | " の3文字を考慮
+        
+        if ($organization && (mb_strlen($grant_title, 'UTF-8') + mb_strlen($organization, 'UTF-8')) < $max_title_length - 3) {
+            $title_parts['title'] = $grant_title;
+            $title_parts['tagline'] = $organization;
+        } else {
+            // 長すぎる場合はタイトルのみに短縮（日本語対応）
+            if (mb_strlen($grant_title, 'UTF-8') > $max_title_length) {
+                $truncated = mb_substr($grant_title, 0, $max_title_length - 1, 'UTF-8');
+                // 日本語の場合は「…」、英語の場合は「...」
+                $title_parts['title'] = $truncated . (preg_match('/[あ-ん]$|[ァ-ヴ]$|[一-龯]$/', $truncated) ? '…' : '...');
+            } else {
+                $title_parts['title'] = $grant_title;
+            }
+            unset($title_parts['tagline']);
+        }
+    } elseif (is_tax('grant_category')) {
+        $term = get_queried_object();
+        $title_parts['title'] = $term->name . 'の助成金・補助金';
+        unset($title_parts['tagline']);
+    } elseif (is_tax('grant_prefecture')) {
+        $term = get_queried_object();
+        $title_parts['title'] = $term->name . 'の助成金・補助金';
+        unset($title_parts['tagline']);
+    } elseif (is_post_type_archive('grant')) {
+        $title_parts['title'] = '助成金・補助金検索';
+        unset($title_parts['tagline']);
     }
     
-    // jQuery（WordPressバンドル版を使用）
-    wp_enqueue_script('jquery');
-    
-    // AJAX用のlocalize
-    if (function_exists('wp_localize_script')) {
-        wp_localize_script('jquery', 'gi_ajax_object', [
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('gi_ajax_nonce'),
-            'strings' => [
-                'loading' => '読み込み中...',
-                'error' => 'エラーが発生しました',
-                'no_results' => '結果が見つかりません'
-            ]
-        ]);
-    }
+    return $title_parts;
 }
-add_action('wp_enqueue_scripts', 'gi_enqueue_scripts');
+add_filter('document_title_parts', 'gi_optimize_document_title', 10, 1);
+
+/**
+ * =============================================================================
+ * テーマスタイル & スクリプト読み込み
+ * =============================================================================
+ */
+
+// gi_enqueue_scripts 関数は inc/theme-foundation.php で定義されています
+// 重複を避けるため、このファイルから削除しました（2024年版では統合版を使用）
+
+/**
+ * 包括的SEO修正ファイルの読み込み
+ * 重複問題解決と追加最適化を含む
+ */
+if (file_exists(get_template_directory() . '/seo-fixes-comprehensive.php')) {
+    require_once get_template_directory() . '/seo-fixes-comprehensive.php';
+}
 
 /**
  * 管理画面用スタイル

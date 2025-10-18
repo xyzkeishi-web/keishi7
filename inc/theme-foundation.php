@@ -771,11 +771,13 @@ function gi_reset_location_data() {
  */
 
 /**
- * 統一的なパンくずリスト配列を生成
+ * 統一的なパンくずリスト配列を生成 - 重複防止版
+ * 注意: seo-enhancements.phpで同名関数が定義されている場合はそちらを優先
  *
  * @param array $additional_items 追加のパンくずリスト項目
  * @return array パンくずリスト配列
  */
+if (!function_exists('gi_generate_breadcrumb_data')) {
 function gi_generate_breadcrumb_data($additional_items = []) {
     $breadcrumbs = [];
     
@@ -904,13 +906,15 @@ function gi_generate_breadcrumb_data($additional_items = []) {
     
     return $breadcrumbs;
 }
+}
 
 /**
- * パンくずリストのHTML出力（統一版）
+ * パンくずリストのHTML出力（統一版） - 重複防止版
  *
  * @param array $breadcrumbs パンくずリスト配列
  * @param array $options 出力オプション
  */
+if (!function_exists('gi_render_breadcrumb_html')) {
 function gi_render_breadcrumb_html($breadcrumbs = null, $options = []) {
     if (is_null($breadcrumbs)) {
         $breadcrumbs = gi_generate_breadcrumb_data();
@@ -969,13 +973,15 @@ function gi_render_breadcrumb_html($breadcrumbs = null, $options = []) {
     echo '</ol>';
     echo '</nav>';
 }
+}
 
 /**
- * パンくずリスト用JSON-LD構造化データ生成
+ * パンくずリスト用JSON-LD構造化データ生成 - 重複防止版
  *
  * @param array $breadcrumbs パンくずリスト配列
  * @return string JSON-LD文字列
  */
+if (!function_exists('gi_generate_breadcrumb_json_ld')) {
 function gi_generate_breadcrumb_json_ld($breadcrumbs = null) {
     if (is_null($breadcrumbs)) {
         $breadcrumbs = gi_generate_breadcrumb_data();
@@ -1007,6 +1013,7 @@ function gi_generate_breadcrumb_json_ld($breadcrumbs = null) {
     ];
     
     return json_encode($breadcrumb_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
 }
 
 /**

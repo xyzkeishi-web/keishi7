@@ -25,7 +25,7 @@ if (!function_exists('gi_get_sns_urls')) {
 
     <!-- Modern Black & White Design - Tailwind CSS + Font Awesome + Google Fonts -->
     <?php if (!wp_script_is('tailwind-cdn', 'enqueued')): ?>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com" defer></script>
     <script>
         // Configure Tailwind CSS with proper error handling
         (function() {
@@ -109,6 +109,9 @@ if (!function_exists('gi_get_sns_urls')) {
                         <a href="<?php echo esc_url(get_post_type_archive_link('grant')); ?>" class="block text-gray-600 hover:text-black transition-colors text-sm">助成金検索</a>
                         <a href="<?php echo esc_url(home_url('/about')); ?>" class="block text-gray-600 hover:text-black transition-colors text-sm">サービスについて</a>
                         <a href="<?php echo esc_url(home_url('/contact')); ?>" class="block text-gray-600 hover:text-black transition-colors text-sm">お問い合わせ</a>
+                        <a href="<?php echo esc_url(home_url('/sitemap.xml')); ?>" class="block text-gray-600 hover:text-black transition-colors text-sm" rel="nofollow">サイトマップ</a>
+                        <a href="<?php echo esc_url(home_url('/privacy')); ?>" class="block text-gray-600 hover:text-black transition-colors text-sm">プライバシーポリシー</a>
+                        <a href="<?php echo esc_url(home_url('/terms')); ?>" class="block text-gray-600 hover:text-black transition-colors text-sm">利用規約</a>
                     </nav>
                 </div>
 
