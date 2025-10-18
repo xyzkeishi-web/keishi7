@@ -467,7 +467,7 @@ a:hover {
    =============================================== */
 .grant-card {
     background: var(--mb-white);
-    border: 1px solid var(--mb-gray-200);
+    border: 2px solid #000000 !important;
     border-radius: 8px;
     padding: var(--spacing-lg);
     transition: all var(--duration-normal) var(--ease-out);

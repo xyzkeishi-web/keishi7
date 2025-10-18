@@ -652,7 +652,6 @@ $region_groups = [
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
     color: #1a1a1a;
     background: #ffffff;
-    min-height: 100vh;
 }
 
 .container {
@@ -2784,6 +2783,71 @@ $region_groups = [
     
     .btn-reset-filters {
         padding: 12px 24px;
+        font-size: 13px;
+    }
+}
+
+/* ===== パンくずリスト専用スタイル ===== */
+.gi-breadcrumbs {
+    margin: 20px 0;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.breadcrumb-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-wrap: wrap;
+}
+
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.breadcrumb-item a {
+    color: #666666;
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.breadcrumb-item a:hover {
+    color: #000000;
+    background: #e9ecef;
+}
+
+.breadcrumb-item.current span {
+    color: #000000;
+    font-weight: 600;
+    padding: 4px 8px;
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.breadcrumb-item .separator {
+    color: #999999;
+    font-size: 12px;
+    margin: 0 4px;
+}
+
+@media (max-width: 768px) {
+    .breadcrumb-list {
+        font-size: 13px;
+    }
+    
+    .breadcrumb-item a,
+    .breadcrumb-item.current span {
+        padding: 3px 6px;
         font-size: 13px;
     }
 }

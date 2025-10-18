@@ -171,16 +171,17 @@ $schema_data = array(
 .gih-hero-section {
     position: relative;
     min-height: 100vh;
+    height: auto;
     display: flex;
     align-items: center;
     padding: 120px 0 80px;
     background: #ffffff;
     font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
-    overflow: hidden;
+    overflow: visible;
     
     /* スマホスクロール最適化 */
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+    overscroll-behavior: auto;
 }
 
 /* コンテナ */
@@ -201,6 +202,12 @@ $schema_data = array(
 @media (min-width: 1024px) {
     .gih-desktop-layout {
         display: block;
+    }
+    
+    .gih-hero-section {
+        min-height: 100vh;
+        height: auto;
+        overflow: visible;
     }
 }
 

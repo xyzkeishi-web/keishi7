@@ -1,0 +1,376 @@
+/**
+ * =============================================================================
+ * 統一パンくずリスト CSS - Grant Insight Perfect
+ * =============================================================================
+ * 
+ * 全ページで統一されたパンくずリストのスタイル定義
+ * アクセシビリティとレスポンシブデザインに対応
+ * SEO改善版の新しいクラス名にも対応
+ */
+
+/* ===== 新しいSEO実装対応 ===== */
+.gi-breadcrumbs {
+    margin: 1rem 0;
+    font-size: 0.875rem;
+    padding: 12px 0;
+    border-bottom: 1px solid #e5e7eb;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.gi-breadcrumbs .breadcrumb-list {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+}
+
+.gi-breadcrumbs .breadcrumb-item {
+    display: flex;
+    align-items: center;
+}
+
+.gi-breadcrumbs .breadcrumb-item:not(:last-child) {
+    margin-right: 0.5rem;
+}
+
+.gi-breadcrumbs .breadcrumb-item a {
+    color: #6b7280;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.gi-breadcrumbs .breadcrumb-item a:hover {
+    color: #374151;
+    text-decoration: underline;
+}
+
+.gi-breadcrumbs .breadcrumb-item.current span {
+    color: #1f2937;
+    font-weight: 500;
+}
+
+.gi-breadcrumbs .separator {
+    margin: 0 0.5rem;
+    color: #9ca3af;
+    font-size: 0.75rem;
+}
+
+/* ===== パンくずリストコンテナ ===== */
+.breadcrumb-nav {
+    margin: 0 0 24px 0;
+    padding: 16px 0;
+    border-bottom: 1px solid #e5e7eb;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+}
+
+.breadcrumb-nav[aria-label] {
+    /* アクセシビリティ: スクリーンリーダー用の説明 */
+}
+
+/* ===== パンくずリストリスト ===== */
+.breadcrumb-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ===== パンくずリスト項目 ===== */
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    position: relative;
+    max-width: 200px; /* 長いタイトルの制限 */
+}
+
+/* CSS区切り文字（統一） */
+.breadcrumb-item:not(:last-child)::after {
+    content: '›';
+    margin: 0 8px;
+    color: #9ca3af;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb-item:hover:not(:last-child)::after {
+    color: #6b7280;
+}
+
+/* ===== パンくずリストリンク ===== */
+.breadcrumb-link {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #6b7280;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    padding: 4px 2px;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.breadcrumb-link:hover {
+    color: #111827;
+    background-color: #f9fafb;
+    text-decoration: none;
+}
+
+.breadcrumb-link:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+    color: #1f2937;
+}
+
+/* ホームアイコンのスタイル */
+.breadcrumb-link svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.breadcrumb-link:hover svg {
+    opacity: 1;
+}
+
+/* ===== 現在のページ表示 ===== */
+.breadcrumb-current {
+    color: #111827;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* ===== レスポンシブ対応 ===== */
+
+/* タブレット */
+@media (max-width: 768px) {
+    .breadcrumb-nav {
+        margin-bottom: 20px;
+        padding: 12px 0;
+    }
+    
+    .breadcrumb-list {
+        font-size: 13px;
+    }
+    
+    .breadcrumb-item {
+        max-width: 150px;
+    }
+    
+    .breadcrumb-item:not(:last-child)::after {
+        margin: 0 6px;
+        font-size: 11px;
+    }
+    
+    .breadcrumb-link {
+        padding: 3px 2px;
+    }
+    
+    .breadcrumb-link svg {
+        width: 13px;
+        height: 13px;
+    }
+}
+
+/* スマートフォン */
+@media (max-width: 480px) {
+    .breadcrumb-nav {
+        margin-bottom: 16px;
+        padding: 10px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .breadcrumb-list {
+        font-size: 12px;
+        gap: 0;
+    }
+    
+    .breadcrumb-item {
+        max-width: 120px;
+    }
+    
+    .breadcrumb-item:not(:last-child)::after {
+        margin: 0 4px;
+        font-size: 10px;
+    }
+    
+    .breadcrumb-link {
+        padding: 2px 1px;
+    }
+    
+    .breadcrumb-link svg {
+        width: 12px;
+        height: 12px;
+    }
+    
+    /* 長いパンくずリストの場合のスクロール対応 */
+    .breadcrumb-list {
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        flex-wrap: nowrap;
+    }
+    
+    .breadcrumb-list::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .breadcrumb-item {
+        flex-shrink: 0;
+    }
+}
+
+/* ===== ダークモード対応 ===== */
+@media (prefers-color-scheme: dark) {
+    .breadcrumb-nav {
+        background: rgba(17, 24, 39, 0.8);
+        border-bottom-color: #374151;
+    }
+    
+    .breadcrumb-item:not(:last-child)::after {
+        color: #6b7280;
+    }
+    
+    .breadcrumb-item:hover:not(:last-child)::after {
+        color: #9ca3af;
+    }
+    
+    .breadcrumb-link {
+        color: #9ca3af;
+    }
+    
+    .breadcrumb-link:hover {
+        color: #f9fafb;
+        background-color: #374151;
+    }
+    
+    .breadcrumb-link:focus {
+        outline-color: #60a5fa;
+        color: #e5e7eb;
+    }
+    
+    .breadcrumb-current {
+        color: #f9fafb;
+    }
+}
+
+/* ===== アクセシビリティ強化 ===== */
+
+/* 高コントラストモード */
+@media (prefers-contrast: high) {
+    .breadcrumb-link {
+        color: #000000;
+        border: 1px solid transparent;
+    }
+    
+    .breadcrumb-link:hover,
+    .breadcrumb-link:focus {
+        color: #000000;
+        background-color: #ffffff;
+        border-color: #000000;
+    }
+    
+    .breadcrumb-current {
+        color: #000000;
+        font-weight: 700;
+    }
+    
+    .breadcrumb-item:not(:last-child)::after {
+        color: #000000;
+        font-weight: 700;
+    }
+}
+
+/* モーション軽減 */
+@media (prefers-reduced-motion: reduce) {
+    .breadcrumb-link,
+    .breadcrumb-item:not(:last-child)::after,
+    .breadcrumb-link svg {
+        transition: none;
+    }
+}
+
+/* ===== プリント対応 ===== */
+@media print {
+    .breadcrumb-nav {
+        background: none;
+        border-bottom: 1px solid #000;
+        backdrop-filter: none;
+    }
+    
+    .breadcrumb-link {
+        color: #000 !important;
+        text-decoration: underline !important;
+    }
+    
+    .breadcrumb-current {
+        color: #000 !important;
+        font-weight: 700 !important;
+    }
+    
+    .breadcrumb-item:not(:last-child)::after {
+        color: #000 !important;
+    }
+}
+
+/* ===== カスタムプロパティ（CSS変数） ===== */
+:root {
+    --breadcrumb-bg: rgba(255, 255, 255, 0.8);
+    --breadcrumb-border: #e5e7eb;
+    --breadcrumb-text: #6b7280;
+    --breadcrumb-text-hover: #111827;
+    --breadcrumb-current: #111827;
+    --breadcrumb-separator: #9ca3af;
+    --breadcrumb-focus: #3b82f6;
+}
+
+/* カスタムテーマ対応 */
+[data-theme="dark"] {
+    --breadcrumb-bg: rgba(17, 24, 39, 0.8);
+    --breadcrumb-border: #374151;
+    --breadcrumb-text: #9ca3af;
+    --breadcrumb-text-hover: #f9fafb;
+    --breadcrumb-current: #f9fafb;
+    --breadcrumb-separator: #6b7280;
+    --breadcrumb-focus: #60a5fa;
+}
+
+/* ===== 特殊状況対応 ===== */
+
+/* JavaScript無効時のフォールバック */
+.no-js .breadcrumb-nav {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+}
+
+/* エラーページ用スタイル */
+.error-page .breadcrumb-nav {
+    background: rgba(254, 242, 242, 0.8);
+    border-bottom-color: #fecaca;
+}
+
+.error-page .breadcrumb-link {
+    color: #dc2626;
+}
+
+.error-page .breadcrumb-current {
+    color: #991b1b;
+}

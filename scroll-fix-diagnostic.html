@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スクロール問題診断ツール - Scroll Fix Diagnostic Tool</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .diagnostic-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .button {
+            background-color: #007cba;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .button:hover {
+            background-color: #005a87;
+        }
+        .fix-button {
+            background-color: #28a745;
+        }
+        .fix-button:hover {
+            background-color: #218838;
+        }
+        .results {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            border-left: 4px solid #007cba;
+        }
+        .issue {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .code-block {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 スクロール問題診断ツール</h1>
+            <h2>Scroll Issue Diagnostic Tool</h2>
+            <p>このツールは、Webページのスクロール問題を診断し、修正します。<br>
+            This tool diagnoses and fixes scrolling issues on web pages.</p>
+        </div>
+
+        <div class="diagnostic-section">
+            <h3>📋 ステップ1: 問題の診断 (Step 1: Diagnose Issues)</h3>
+            <p>現在のページのスクロール関連の問題をチェックします：</p>
+            <button class="button" onclick="diagnoseScrollIssues()">診断開始 (Start Diagnosis)</button>
+            <div id="diagnosis-results" class="results" style="display: none;"></div>
+        </div>
+
+        <div class="diagnostic-section">
+            <h3>🛠️ ステップ2: 自動修正 (Step 2: Auto Fix)</h3>
+            <p>検出された問題を自動で修正します：</p>
+            <button class="button fix-button" onclick="autoFixScrollIssues()">自動修正実行 (Auto Fix)</button>
+            <div id="fix-results" class="results" style="display: none;"></div>
+        </div>
+
+        <div class="diagnostic-section">
+            <h3>📝 ステップ3: 手動修正コード (Step 3: Manual Fix Code)</h3>
+            <p>手動でCSSを修正する場合の参考コード：</p>
+            <button class="button" onclick="showManualFix()">手動修正コードを表示 (Show Manual Fix)</button>
+            <div id="manual-fix" class="results" style="display: none;"></div>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ 注意 (Warning):</strong><br>
+            このツールは診断と一時的な修正を行います。恒久的な修正には、実際のCSSファイルを編集する必要があります。<br>
+            This tool provides diagnosis and temporary fixes. Permanent fixes require editing the actual CSS files.
+        </div>
+    </div>
+
+    <script>
+        function diagnoseScrollIssues() {
+            const resultsDiv = document.getElementById('diagnosis-results');
+            resultsDiv.style.display = 'block';
+            
+            let issues = [];
+            let results = '<h4>診断結果 (Diagnosis Results):</h4>';
+            
+            // Check body and html overflow
+            const bodyOverflow = getComputedStyle(document.body).overflow;
+            const htmlOverflow = getComputedStyle(document.documentElement).overflow;
+            
+            if (bodyOverflow === 'hidden') {
+                issues.push('body要素にoverflow:hiddenが設定されています');
+            }
+            if (htmlOverflow === 'hidden') {
+                issues.push('html要素にoverflow:hiddenが設定されています');
+            }
+            
+            // Check for problematic height settings
+            const bodyHeight = getComputedStyle(document.body).height;
+            const htmlHeight = getComputedStyle(document.documentElement).height;
+            
+            if (bodyHeight === '100vh' || htmlHeight === '100vh') {
+                issues.push('body/html要素に100vhの高さが設定されています');
+            }
+            
+            // Check for hero sections with problematic CSS
+            const heroSections = document.querySelectorAll('.section-hero, .hero, .banner, section[class*="hero"]');
+            heroSections.forEach((section, index) => {
+                const styles = getComputedStyle(section);
+                if (styles.height === '100vh') {
+                    issues.push(`ヒーローセクション${index + 1}に100vhの高さが設定されています`);
+                }
+                if (styles.position === 'fixed' || styles.position === 'absolute') {
+                    issues.push(`ヒーローセクション${index + 1}にposition:${styles.position}が設定されています`);
+                }
+                if (styles.overflow === 'hidden') {
+                    issues.push(`ヒーローセクション${index + 1}にoverflow:hiddenが設定されています`);
+                }
+            });
+            
+            // Check document height vs window height
+            const documentHeight = Math.max(
+                document.body.scrollHeight,
+                document.body.offsetHeight,
+                document.documentElement.clientHeight,
+                document.documentElement.scrollHeight,
+                document.documentElement.offsetHeight
+            );
+            
+            if (documentHeight <= window.innerHeight) {
+                issues.push('ドキュメントの高さが画面の高さ以下です（コンテンツ不足の可能性）');
+            }
+            
+            if (issues.length === 0) {
+                results += '<div class="success">✅ スクロール関連の問題は検出されませんでした</div>';
+            } else {
+                results += '<div class="issue">🚨 以下の問題が検出されました:</div>';
+                issues.forEach(issue => {
+                    results += `<div>• ${issue}</div>`;
+                });
+            }
+            
+            results += `<div style="margin-top: 15px;">
+                <strong>技術情報:</strong><br>
+                • ドキュメント高さ: ${documentHeight}px<br>
+                • ウィンドウ高さ: ${window.innerHeight}px<br>
+                • body overflow: ${bodyOverflow}<br>
+                • html overflow: ${htmlOverflow}
+            </div>`;
+            
+            resultsDiv.innerHTML = results;
+        }
+        
+        function autoFixScrollIssues() {
+            const resultsDiv = document.getElementById('fix-results');
+            resultsDiv.style.display = 'block';
+            
+            let fixes = [];
+            
+            // Fix body and html overflow
+            if (getComputedStyle(document.body).overflow === 'hidden') {
+                document.body.style.overflow = 'auto';
+                fixes.push('body要素のoverflow:hiddenを修正しました');
+            }
+            if (getComputedStyle(document.documentElement).overflow === 'hidden') {
+                document.documentElement.style.overflow = 'auto';
+                fixes.push('html要素のoverflow:hiddenを修正しました');
+            }
+            
+            // Fix hero sections
+            const heroSections = document.querySelectorAll('.section-hero, .hero, .banner, section[class*="hero"]');
+            heroSections.forEach((section, index) => {
+                const styles = getComputedStyle(section);
+                if (styles.height === '100vh') {
+                    section.style.minHeight = '100vh';
+                    section.style.height = 'auto';
+                    fixes.push(`ヒーローセクション${index + 1}のheight:100vhをmin-height:100vhに修正しました`);
+                }
+            });
+            
+            // Add scroll behavior
+            document.documentElement.style.scrollBehavior = 'smooth';
+            fixes.push('スムーズスクロールを有効にしました');
+            
+            let results = '<h4>修正結果 (Fix Results):</h4>';
+            if (fixes.length === 0) {
+                results += '<div class="success">✅ 修正が必要な項目はありませんでした</div>';
+            } else {
+                results += '<div class="success">✅ 以下の修正を実行しました:</div>';
+                fixes.forEach(fix => {
+                    results += `<div>• ${fix}</div>`;
+                });
+                results += '<div style="margin-top: 15px;"><strong>ページを再読み込みしてスクロールをテストしてください。</strong></div>';
+            }
+            
+            resultsDiv.innerHTML = results;
+        }
+        
+        function showManualFix() {
+            const resultsDiv = document.getElementById('manual-fix');
+            resultsDiv.style.display = 'block';
+            
+            const cssCode = `/* スクロール問題の修正CSS */
+
+/* 基本的なスクロール修正 */
+html, body {
+    overflow: auto !important;
+    height: auto !important;
+    scroll-behavior: smooth;
+}
+
+/* ヒーローセクションの修正 */
+.section-hero,
+.hero,
+section[class*="hero"] {
+    /* 100vhを使用している場合の修正 */
+    min-height: 100vh !important;
+    height: auto !important;
+    
+    /* 固定位置の修正 */
+    position: relative !important;
+    
+    /* オーバーフローの修正 */
+    overflow: visible !important;
+}
+
+/* より具体的なセレクタが必要な場合 */
+.section-hero.front-page {
+    min-height: 100vh !important;
+    height: auto !important;
+}
+
+/* アニメーション中のスクロール無効化を解除 */
+body.no-scroll,
+html.no-scroll {
+    overflow: auto !important;
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+    .section-hero,
+    .hero {
+        min-height: 50vh !important;
+    }
+}`;
+
+            const jsCode = `// JavaScript による動的修正
+
+// 即座に実行される修正
+(function() {
+    // overflow:hidden の解除
+    document.body.style.overflow = 'auto';
+    document.documentElement.style.overflow = 'auto';
+    
+    // no-scroll クラスの削除
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
+    
+    // ヒーローセクションの修正
+    const heroSections = document.querySelectorAll('.section-hero, .hero, section[class*="hero"]');
+    heroSections.forEach(section => {
+        const currentHeight = getComputedStyle(section).height;
+        if (currentHeight === '100vh') {
+            section.style.minHeight = '100vh';
+            section.style.height = 'auto';
+        }
+    });
+})();
+
+// ページ読み込み完了後の修正
+document.addEventListener('DOMContentLoaded', function() {
+    // 追加の修正処理
+    console.log('スクロール修正が適用されました');
+});`;
+
+            resultsDiv.innerHTML = `
+                <h4>CSS修正コード:</h4>
+                <div class="code-block">${cssCode}</div>
+                
+                <h4>JavaScript修正コード:</h4>
+                <div class="code-block">${jsCode}</div>
+                
+                <div style="margin-top: 15px;">
+                    <strong>使用方法:</strong><br>
+                    1. 上記のCSSコードをサイトのCSSファイルに追加<br>
+                    2. または、ブラウザの開発者ツールのConsoleタブで上記のJavaScriptコードを実行<br>
+                    3. 恒久的な修正には、テーマファイルやCSSファイルを直接編集
+                </div>
+            `;
+        }
+        
+        // ページ読み込み時に自動診断
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                diagnoseScrollIssues();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -11,18 +11,41 @@
 <html <?php language_attributes(); ?>>
 <head>
     <meta charset="<?php bloginfo('charset'); ?>">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="format-detection" content="telephone=no">
+    
+    <!-- DNS Prefetch for Performance -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    
+    <!-- Mobile SEO Optimization -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="<?php bloginfo('name'); ?>">
+    <meta name="theme-color" content="#000000">
+    <meta name="msapplication-TileColor" content="#000000">
+    
+    <!-- Security Headers -->
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    
+    <!-- Language and Region -->
+    <meta name="language" content="ja">
+    <meta name="geo.region" content="JP">
+    <meta name="geo.country" content="Japan">
     
     <?php wp_head(); ?>
     
-    <!-- Preload fonts -->Q
+    <!-- Optimized Font Loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800&family=Outfit:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"></noscript>
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Awesome - Optimized Loading -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     
     <style>
         /* ===============================================
@@ -251,7 +274,7 @@
             }
         }
         
-        .stylish-logo-text h1 {
+        .stylish-logo-text .site-title {
             margin: 0;
             font-size: 1.375rem;
             font-weight: var(--font-weight-bold);
@@ -262,7 +285,7 @@
         }
         
         @media (min-width: 768px) {
-            .stylish-logo-text h1 {
+            .stylish-logo-text .site-title {
                 font-size: 1.5rem;
             }
         }
@@ -853,7 +876,7 @@
                      loading="eager">
                 
                 <div class="stylish-logo-text">
-                    <h1><?php bloginfo('name'); ?></h1>
+                    <span class="site-title"><?php bloginfo('name'); ?></span>
                     <?php if ($tagline = get_bloginfo('description')): ?>
                         <p><?php echo esc_html($tagline); ?></p>
                     <?php endif; ?>

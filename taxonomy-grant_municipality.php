@@ -51,17 +51,8 @@ foreach ($prefecture_data as $pref) {
     }
 }
 
-// パンくずリスト用データ
-$breadcrumbs = [
-    ['name' => 'ホーム', 'url' => home_url()],
-    ['name' => '助成金・補助金検索', 'url' => get_post_type_archive_link('grant')],
-];
-
-if ($parent_prefecture) {
-    $breadcrumbs[] = ['name' => $parent_prefecture['name'], 'url' => get_term_link($parent_prefecture['slug'], 'grant_prefecture')];
-}
-
-$breadcrumbs[] = ['name' => $municipality_name, 'url' => ''];
+// 統一パンくずリストシステムを使用
+// 市町村固有のデータは gi_generate_breadcrumb_data() 内で自動生成
 
 // 現在のページ情報
 $paged = get_query_var('paged') ? get_query_var('paged') : 1;
@@ -80,21 +71,7 @@ $search_keyword = isset($_GET['search']) ? sanitize_text_field($_GET['search']) 
   "name": "<?php echo esc_js($page_title); ?>",
   "description": "<?php echo esc_js($page_description); ?>",
   "url": "<?php echo esc_js(get_term_link($current_municipality)); ?>",
-  "breadcrumb": {
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      <?php foreach ($breadcrumbs as $index => $crumb): ?>
-      {
-        "@type": "ListItem",
-        "position": <?php echo $index + 1; ?>,
-        "name": "<?php echo esc_js($crumb['name']); ?>"
-        <?php if ($crumb['url']): ?>
-        ,"item": "<?php echo esc_js($crumb['url']); ?>"
-        <?php endif; ?>
-      }<?php if ($index < count($breadcrumbs) - 1): ?>,<?php endif; ?>
-      <?php endforeach; ?>
-    ]
-  },
+  "breadcrumb": <?php echo gi_generate_breadcrumb_json_ld(); ?>,
   "mainEntity": {
     "@type": "ItemList",
     "numberOfItems": <?php echo intval($municipality_count); ?>,
@@ -107,22 +84,8 @@ $search_keyword = isset($_GET['search']) ? sanitize_text_field($_GET['search']) 
     <!-- ページヘッダー -->
     <header class="archive-header">
         <div class="container">
-            <!-- パンくずナビゲーション -->
-            <nav class="breadcrumb-nav" aria-label="パンくず">
-                <ol class="breadcrumb-list">
-                    <?php foreach ($breadcrumbs as $index => $crumb): ?>
-                    <li class="breadcrumb-item">
-                        <?php if ($crumb['url']): ?>
-                        <a href="<?php echo esc_url($crumb['url']); ?>" class="breadcrumb-link">
-                            <?php echo esc_html($crumb['name']); ?>
-                        </a>
-                        <?php else: ?>
-                        <span class="breadcrumb-current"><?php echo esc_html($crumb['name']); ?></span>
-                        <?php endif; ?>
-                    </li>
-                    <?php endforeach; ?>
-                </ol>
-            </nav>
+            <!-- 統一パンくずナビゲーション -->
+            <?php gi_render_breadcrumb_html(); ?>
 
             <!-- メインタイトル -->
             <div class="header-content">
@@ -732,49 +695,7 @@ $search_keyword = isset($_GET['search']) ? sanitize_text_field($_GET['search']) 
     background: linear-gradient(90deg, var(--color-black) 0%, var(--color-gray-400) 100%);
 }
 
-/* パンくずナビゲーション */
-.breadcrumb-nav {
-    margin-bottom: 30px;
-}
-
-.breadcrumb-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.breadcrumb-item {
-    display: flex;
-    align-items: center;
-}
-
-.breadcrumb-item:not(:last-child)::after {
-    content: '›';
-    margin-left: 8px;
-    color: var(--color-gray-400);
-    font-weight: bold;
-}
-
-.breadcrumb-link {
-    color: var(--color-gray-600);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    transition: color 0.2s ease;
-}
-
-.breadcrumb-link:hover {
-    color: var(--color-black);
-}
-
-.breadcrumb-current {
-    color: var(--color-black);
-    font-size: 14px;
-    font-weight: 600;
-}
+/* パンくずナビゲーション - 統一CSSファイル（breadcrumbs.css）を使用 */
 
 /* ヘッダーコンテンツ */
 .header-content {
@@ -1357,8 +1278,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const paginationNav = document.getElementById('paginationNav');
 
     if (filterForm) {
-        // ページ読み込み時に初期データを取得
-        loadGrants();
+        // 初期表示は server-rendered content を使用
 
         filterForm.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -1403,7 +1323,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 grantsGrid.innerHTML = data.data.html;
                 
                 if (resultsCount) {
-                    resultsCount.textContent = `${data.data.total}件の助成金・補助金`;
+                    const totalCount = parseInt(data.data.total) || 0;
+                    resultsCount.textContent = `${totalCount.toLocaleString()}件の助成金・補助金`;
                 }
                 
                 if (paginationNav) {
@@ -1418,6 +1339,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         <p>エラーが発生しました: ${data.data || 'データの取得に失敗しました'}</p>
                     </div>
                 `;
+                if (resultsCount) {
+                    resultsCount.textContent = '0件の助成金・補助金';
+                }
             }
         })
         .catch(error => {
@@ -1427,6 +1351,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p>通信エラーが発生しました。しばらく時間をおいてから再度お試しください。</p>
                 </div>
             `;
+            if (resultsCount) {
+                resultsCount.textContent = '0件の助成金・補助金';
+            }
         });
     }
 

@@ -42,10 +42,33 @@ html {
     transform: translateY(0);
 }
 
-/* モバイル最適化 */
+/* モバイル最適化 - スクロール問題完全解決 */
 @media (max-width: 768px) {
     .site-main {
         overflow-x: hidden;
+        overflow-y: auto;
+        /* タッチスクロール最適化 */
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+    }
+    
+    /* フロントページ専用のスクロール修正 */
+    .front-page-section {
+        min-height: auto !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+    
+    /* iOS Safari対応 */
+    html {
+        height: 100%;
+        -webkit-text-size-adjust: 100%;
+    }
+    
+    body {
+        height: auto;
+        min-height: 100vh;
+        overflow-y: auto !important;
     }
 }
 

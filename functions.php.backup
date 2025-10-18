@@ -66,10 +66,7 @@ $required_files = array(
     // Google Sheets integration (consolidated into one file)
     'google-sheets-integration.php', // Google Sheets統合（全機能統合版）
     'safe-sync-manager.php',         // 安全同期管理システム
-    'disable-auto-sync.php',         // 自動同期無効化
-    
-    // SEO Enhancement
-    'seo-enhancements.php'           // SEO最適化機能（メタタグ、OGP、構造化データ）
+    'disable-auto-sync.php'          // 自動同期無効化
 );
 
 // ファイルを安全に読み込み
@@ -84,86 +81,6 @@ foreach ($required_files as $file) {
         }
     }
 }
-
-/**
- * =============================================================================
- * SEO最適化機能
- * =============================================================================
- */
-
-/**
- * タイトルタグの最適化（60文字以内）
- */
-function gi_optimize_document_title($title_parts) {
-    if (is_singular('grant')) {
-        global $post;
-        $grant_title = get_the_title();
-        $organization = function_exists('get_field') ? get_field('organization', $post->ID) : '';
-        
-        // タイトルの長さを制限（日本語SEO最適化：32文字以内に収める）
-        $site_name = get_bloginfo('name');
-        $max_title_length = 32 - mb_strlen($site_name, 'UTF-8') - 3; // " | " の3文字を考慮
-        
-        if ($organization && (mb_strlen($grant_title, 'UTF-8') + mb_strlen($organization, 'UTF-8')) < $max_title_length - 3) {
-            $title_parts['title'] = $grant_title;
-            $title_parts['tagline'] = $organization;
-        } else {
-            // 長すぎる場合はタイトルのみに短縮（日本語対応）
-            if (mb_strlen($grant_title, 'UTF-8') > $max_title_length) {
-                $truncated = mb_substr($grant_title, 0, $max_title_length - 1, 'UTF-8');
-                // 日本語の場合は「…」、英語の場合は「...」
-                $title_parts['title'] = $truncated . (preg_match('/[あ-ん]$|[ァ-ヴ]$|[一-龯]$/', $truncated) ? '…' : '...');
-            } else {
-                $title_parts['title'] = $grant_title;
-            }
-            unset($title_parts['tagline']);
-        }
-    } elseif (is_tax('grant_category')) {
-        $term = get_queried_object();
-        $title_parts['title'] = $term->name . 'の助成金・補助金';
-        unset($title_parts['tagline']);
-    } elseif (is_tax('grant_prefecture')) {
-        $term = get_queried_object();
-        $title_parts['title'] = $term->name . 'の助成金・補助金';
-        unset($title_parts['tagline']);
-    } elseif (is_post_type_archive('grant')) {
-        $title_parts['title'] = '助成金・補助金検索';
-        unset($title_parts['tagline']);
-    }
-    
-    return $title_parts;
-}
-add_filter('document_title_parts', 'gi_optimize_document_title', 10, 1);
-
-/**
- * =============================================================================
- * テーマスタイル & スクリプト読み込み
- * =============================================================================
- */
-
-// gi_enqueue_scripts 関数は inc/theme-foundation.php で定義されています
-// 重複を避けるため、このファイルから削除しました（2024年版では統合版を使用）
-
-/**
- * 包括的SEO修正ファイルの読み込み
- * 重複問題解決と追加最適化を含む
- */
-if (file_exists(get_template_directory() . '/seo-fixes-comprehensive.php')) {
-    require_once get_template_directory() . '/seo-fixes-comprehensive.php';
-}
-
-/**
- * 管理画面用スタイル
- */
-function gi_admin_enqueue_scripts() {
-    wp_enqueue_style(
-        'gi-admin-style',
-        get_template_directory_uri() . '/assets/css/admin.css',
-        [],
-        GI_THEME_VERSION
-    );
-}
-add_action('admin_enqueue_scripts', 'gi_admin_enqueue_scripts');
 
 // グローバルで使えるヘルパー関数
 if (!function_exists('gi_render_card')) {
@@ -1237,9 +1154,205 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
  */
 
 /**
- * NOTE: Category AJAX functions have been moved to inc/ajax-functions.php
- * to avoid duplication and centralize AJAX handling
+ * カテゴリーページでの助成金フィルタリング処理
  */
+add_action('wp_ajax_filter_category_grants', 'gi_ajax_filter_category_grants');
+add_action('wp_ajax_nopriv_filter_category_grants', 'gi_ajax_filter_category_grants');
+
+function gi_ajax_filter_category_grants() {
+    // Nonce検証
+    if (!wp_verify_nonce($_POST['nonce'], 'gi_ajax_nonce')) {
+        wp_send_json_error(['message' => 'セキュリティチェックに失敗しました']);
+        return;
+    }
+
+    // パラメータの取得とサニタイズ
+    $category = sanitize_text_field($_POST['category'] ?? '');
+    $prefecture = sanitize_text_field($_POST['prefecture'] ?? '');
+    $status = sanitize_text_field($_POST['status'] ?? '');
+    $amount = sanitize_text_field($_POST['amount'] ?? '');
+    $sort = sanitize_text_field($_POST['sort'] ?? 'date_desc');
+    $search = sanitize_text_field($_POST['search'] ?? '');
+    $page = intval($_POST['page'] ?? 1);
+    $posts_per_page = 12;
+
+    // クエリ引数の構築
+    $query_args = [
+        'post_type' => 'grant',
+        'posts_per_page' => $posts_per_page,
+        'paged' => $page,
+        'post_status' => 'publish',
+        'tax_query' => []
+    ];
+
+    // カテゴリーフィルター
+    if (!empty($category)) {
+        $query_args['tax_query'][] = [
+            'taxonomy' => 'grant_category',
+            'field'    => 'slug',
+            'terms'    => $category,
+        ];
+    }
+
+    // 都道府県フィルター
+    if (!empty($prefecture)) {
+        $query_args['tax_query'][] = [
+            'taxonomy' => 'grant_prefecture',
+            'field'    => 'slug',
+            'terms'    => $prefecture,
+        ];
+    }
+
+    // 複数のtax_queryがある場合の関係を設定
+    if (count($query_args['tax_query']) > 1) {
+        $query_args['tax_query']['relation'] = 'AND';
+    }
+
+    // 検索クエリ
+    if (!empty($search)) {
+        $query_args['s'] = $search;
+    }
+
+    // メタクエリ（ステータス・金額）
+    $meta_query = [];
+
+    if (!empty($status)) {
+        switch ($status) {
+            case 'active':
+                $meta_query[] = [
+                    'key' => 'application_status',
+                    'value' => ['募集中', 'active'],
+                    'compare' => 'IN'
+                ];
+                break;
+            case 'upcoming':
+                $meta_query[] = [
+                    'key' => 'application_status',
+                    'value' => ['募集予定', 'upcoming'],
+                    'compare' => 'IN'
+                ];
+                break;
+            case 'closed':
+                $meta_query[] = [
+                    'key' => 'application_status',
+                    'value' => ['募集終了', 'closed'],
+                    'compare' => 'IN'
+                ];
+                break;
+        }
+    }
+
+    if (!empty($amount)) {
+        $amount_ranges = [
+            '0-100' => [0, 1000000],
+            '100-500' => [1000000, 5000000],
+            '500-1000' => [5000000, 10000000],
+            '1000+' => [10000000, 999999999]
+        ];
+
+        if (isset($amount_ranges[$amount])) {
+            $range = $amount_ranges[$amount];
+            $meta_query[] = [
+                'key' => 'max_amount',
+                'value' => $range,
+                'type' => 'NUMERIC',
+                'compare' => 'BETWEEN'
+            ];
+        }
+    }
+
+    if (!empty($meta_query)) {
+        if (count($meta_query) > 1) {
+            $meta_query['relation'] = 'AND';
+        }
+        $query_args['meta_query'] = $meta_query;
+    }
+
+    // ソート設定
+    switch ($sort) {
+        case 'amount_desc':
+            $query_args['meta_key'] = 'max_amount';
+            $query_args['orderby'] = 'meta_value_num';
+            $query_args['order'] = 'DESC';
+            break;
+        case 'deadline_asc':
+            $query_args['meta_key'] = 'application_deadline';
+            $query_args['orderby'] = 'meta_value';
+            $query_args['order'] = 'ASC';
+            break;
+        case 'featured':
+            $query_args['meta_key'] = 'is_featured';
+            $query_args['orderby'] = ['meta_value_num' => 'DESC', 'date' => 'DESC'];
+            break;
+        default: // date_desc
+            $query_args['orderby'] = 'date';
+            $query_args['order'] = 'DESC';
+    }
+
+    // クエリ実行
+    $query = new WP_Query($query_args);
+
+    if ($query->have_posts()) {
+        ob_start();
+        
+        while ($query->have_posts()) {
+            $query->the_post();
+            get_template_part('template-parts/grant-card-unified');
+        }
+        
+        wp_reset_postdata();
+        $html = ob_get_clean();
+
+        // ページネーション
+        $pagination = '';
+        if ($query->max_num_pages > 1) {
+            $pagination = paginate_links([
+                'total' => $query->max_num_pages,
+                'current' => $page,
+                'format' => '?paged=%#%',
+                'type' => 'list',
+                'show_all' => false,
+                'end_size' => 2,
+                'mid_size' => 1,
+                'prev_text' => '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg> 前へ',
+                'next_text' => '次へ <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>',
+            ]);
+        }
+
+        wp_send_json_success([
+            'html' => $html,
+            'found_posts' => $query->found_posts,
+            'showing_from' => (($page - 1) * $posts_per_page) + 1,
+            'showing_to' => min($page * $posts_per_page, $query->found_posts),
+            'pagination' => $pagination,
+            'max_pages' => $query->max_num_pages
+        ]);
+    } else {
+        // 結果なしの場合
+        ob_start();
+        ?>
+        <div class="no-grants-message">
+            <svg class="no-results-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+            </svg>
+            <h3>該当する助成金が見つかりませんでした</h3>
+            <p>検索条件を変更して再度お試しください。</p>
+            <button class="btn-primary" onclick="clearAllFilters()">フィルターをクリア</button>
+        </div>
+        <?php
+        $html = ob_get_clean();
+
+        wp_send_json_success([
+            'html' => $html,
+            'found_posts' => 0,
+            'showing_from' => 0,
+            'showing_to' => 0,
+            'pagination' => '',
+            'max_pages' => 0
+        ]);
+    }
+}
 
 /**
  * =============================================================================

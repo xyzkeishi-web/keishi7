@@ -408,7 +408,7 @@ $nonce = wp_create_nonce('gi_ai_search_nonce');
     --gi-color-accent: #FFEB3B;
     --gi-color-background: #FFFFFF;
     --gi-color-surface: #FAFAFA;
-    --gi-color-border: #E0E0E0;
+    --gi-color-border: #000000;
     --gi-color-text: #000000;
     --gi-color-text-muted: #666666;
     --gi-color-text-light: #999999;
@@ -1003,7 +1003,7 @@ $nonce = wp_create_nonce('gi_ai_search_nonce');
 .monochrome-ai-search .ai-assistant-panel {
     background: var(--gi-color-surface);
     border-radius: var(--gi-radius-2xl);
-    border: 1px solid var(--gi-color-border);
+    border: 2px solid #000000;
     display: flex;
     flex-direction: column;
     height: 600px;
@@ -1013,7 +1013,7 @@ $nonce = wp_create_nonce('gi_ai_search_nonce');
 
 .monochrome-ai-search .assistant-header {
     padding: var(--gi-spacing-lg);
-    border-bottom: 1px solid var(--gi-color-border);
+    border-bottom: 2px solid #000000;
     display: flex;
     align-items: center;
     gap: var(--gi-spacing-md);
@@ -1427,7 +1427,7 @@ $nonce = wp_create_nonce('gi_ai_search_nonce');
     align-items: center;
     margin-bottom: var(--gi-spacing-lg);
     padding-bottom: var(--gi-spacing-md);
-    border-bottom: 2px solid var(--gi-color-border);
+    border-bottom: 3px solid #000000;
 }
 
 .monochrome-ai-search .results-title {
@@ -1498,12 +1498,13 @@ $nonce = wp_create_nonce('gi_ai_search_nonce');
     position: relative;
     background: var(--gi-color-background);
     padding: var(--gi-spacing-lg);
-    border: 2px solid var(--gi-color-primary);
+    border: 3px solid #000000 !important;
     transition: all var(--gi-transition-base);
     cursor: pointer;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .monochrome-ai-search .grant-card::before {
@@ -2298,6 +2299,50 @@ $nonce = wp_create_nonce('gi_ai_search_nonce');
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+/* ============================================
+   CRITICAL: Force Border Visibility for Search Results
+   These styles have maximum specificity to ensure borders are visible
+   ============================================ */
+.monochrome-ai-search .grant-card,
+.monochrome-ai-search .featured-grants .grant-card,
+.monochrome-ai-search .results-list .grant-card,
+.monochrome-ai-search .results-container .grant-card {
+    border: 3px solid #000000 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.monochrome-ai-search .grant-card:hover,
+.monochrome-ai-search .featured-grants .grant-card:hover,
+.monochrome-ai-search .results-list .grant-card:hover,
+.monochrome-ai-search .results-container .grant-card:hover {
+    border: 3px solid #333333 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.monochrome-ai-search .results-header {
+    border-bottom: 3px solid #000000 !important;
+}
+
+.monochrome-ai-search .ai-assistant-panel {
+    border: 2px solid #000000 !important;
+}
+
+.monochrome-ai-search .assistant-header {
+    border-bottom: 2px solid #000000 !important;
+}
+
+.monochrome-ai-search .suggestion-item {
+    border-bottom: 1px solid #000000 !important;
+}
+
+.monochrome-ai-search .quick-questions {
+    border-top: 1px solid #000000 !important;
+}
+
+.monochrome-ai-search .chat-input-area {
+    border-top: 1px solid #000000 !important;
 }
 </style>
 

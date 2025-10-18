@@ -143,11 +143,12 @@ if (function_exists('update_post_meta')) {
 }
 ?>
 
-<!-- SEO Meta -->
-<meta name="description" content="<?php echo esc_attr($seo_description); ?>">
-<link rel="canonical" href="<?php echo esc_url($canonical_url); ?>">
-
-<!-- 構造化データ -->
+<?php 
+// 構造化データ: seo-enhancements.phpで処理済みの場合はスキップ
+if (!function_exists('gi_output_grant_government_service_schema') || 
+    !has_action('wp_head', 'gi_output_grant_government_service_schema')): 
+?>
+<!-- 構造化データ（フォールバック） -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -167,6 +168,7 @@ if (function_exists('update_post_meta')) {
   "areaServed": "JP"
 }
 </script>
+<?php endif; ?>
 
 <style>
 /* ===============================================

@@ -59,6 +59,8 @@ html {
     scroll-behavior: smooth;
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
+    overflow-y: auto;
+    height: auto;
 }
 
 body {
@@ -69,6 +71,8 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 a {
@@ -658,11 +662,14 @@ button {
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     padding: 1.5rem;
     border-left: 4px solid var(--color-primary);
-    transition: box-shadow var(--transition-normal);
+    border: 2px solid #000000 !important;
+    transition: all var(--transition-normal);
 }
 
 .result-item:hover {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+    border-color: #000000;
+    transform: translateY(-2px);
 }
 
 .result-title {
@@ -864,7 +871,9 @@ button {
    ========================================================================== */
 .site-main {
     min-height: 100vh;
+    height: auto;
     padding: 2rem 0;
+    overflow: visible;
 }
 
 .content-container {
@@ -1231,6 +1240,95 @@ img[loading="lazy"] {
 }
 
 /* ==========================================================================
+   スクロール問題修正 - Scroll Fix
+   ========================================================================== */
+
+/* 基本的なスクロール修正 - Basic scroll fixes */
+html, body {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    height: auto !important;
+    scroll-behavior: smooth !important;
+}
+
+/* no-scrollクラスの無効化 - Disable no-scroll classes */
+html.no-scroll,
+body.no-scroll,
+.no-scroll {
+    overflow: auto !important;
+}
+
+/* ヒーローセクション汎用修正 - Hero section universal fixes */
+.gih-hero-section,
+.section-hero,
+.hero,
+.banner,
+section[class*="hero"],
+.landing-hero,
+.page-hero,
+.front-page {
+    min-height: 100vh !important;
+    height: auto !important;
+    position: relative !important;
+    overflow: visible !important;
+}
+
+/* サイトメイン要素の修正 */
+.site-main,
+.site-content,
+.main-content,
+.page-content {
+    overflow: visible !important;
+    height: auto !important;
+}
+
+/* ラッパー要素の修正 */
+.wrapper,
+.container,
+.site-wrapper,
+#page,
+#main {
+    overflow: visible !important;
+    min-height: auto !important;
+    height: auto !important;
+}
+
+/* WordPressやその他CMSの一般的なクラス */
+.gih-container,
+.content-container {
+    overflow: visible !important;
+}
+
+/* モバイル対応 - Mobile responsive fixes */
+@media (max-width: 768px) {
+    .gih-hero-section,
+    .section-hero,
+    .hero,
+    section[class*="hero"] {
+        min-height: 70vh !important;
+        padding: 20px 0 !important;
+        height: auto !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .gih-hero-section,
+    .section-hero,
+    .hero,
+    section[class*="hero"] {
+        min-height: 50vh !important;
+        padding: 15px 0 !important;
+        height: auto !important;
+    }
+}
+
+/* JavaScriptによるスクロール無効化を防ぐ */
+html[style*="overflow: hidden"],
+body[style*="overflow: hidden"] {
+    overflow: auto !important;
+}
+
+/* ==========================================================================
    エンドオブファイル
    ========================================================================== */
 
@@ -1439,15 +1537,16 @@ img[loading="lazy"] {
     gap: 5px;
     padding: 15px 20px;
     background: white;
-    border: 2px solid #e0e0e0;
+    border: 2px solid #333333;
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: left;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .example-query:hover {
-    border-color: #667eea;
+    border-color: #000000;
     background: #f8f9ff;
 }
 
