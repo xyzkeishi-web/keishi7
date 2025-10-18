@@ -605,11 +605,22 @@ function gi_add_strategic_internal_links_enhanced($content) {
         
         // キーワードが存在し、まだリンクされていない場合
         if (strpos($content, $keyword) !== false && strpos($content, $link_data['url']) === false) {
-            $pattern = '/(?<!<a[^>]*>)' . preg_quote($keyword, '/') . '(?![^<]*<\/a>)/';
-            $replacement = '<a href="' . esc_url($link_data['url']) . '" class="internal-link" title="' . esc_attr($link_data['text']) . '">' . $keyword . '</a>';
+            // シンプルで安全なリンク置換（後読みアサーションを使用せず）
+            $escaped_keyword = preg_quote($keyword, '/');
             
-            $content = preg_replace($pattern, $replacement, $content, 1);
-            $links_added++;
+            // 既にリンクされているかチェック（シンプルな方法）
+            if (strpos($content, '>' . $keyword . '</a>') === false) {
+                // ワード境界を考慮して置換
+                $pattern = '/\b' . $escaped_keyword . '\b/u';
+                $replacement = '<a href="' . esc_url($link_data['url']) . '" class="internal-link" title="' . esc_attr($link_data['text']) . '">' . $keyword . '</a>';
+                
+                // 初回のみ置換
+                $new_content = preg_replace($pattern, $replacement, $content, 1);
+                if ($new_content !== null && $new_content !== $content) {
+                    $content = $new_content;
+                    $links_added++;
+                }
+            }
         }
     }
     
