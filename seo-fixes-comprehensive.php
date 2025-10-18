@@ -626,7 +626,8 @@ function gi_add_strategic_internal_links_enhanced($content) {
     
     return $content;
 }
-add_filter('the_content', 'gi_add_strategic_internal_links_enhanced', 15);
+// Temporarily disable internal linking to prevent regex errors
+// add_filter('the_content', 'gi_add_strategic_internal_links_enhanced', 15);
 
 /**
  * タクソノミースラッグからリンク取得（ヘルパー関数）
